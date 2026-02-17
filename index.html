@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gespro – Exportación & Existencia</title>
+
+  <!-- CoreUI CSS (CDN) -->
+  <link href="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.0.2/dist/css/coreui.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/@coreui/icons@3.0.1/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .ok { color: #2eb85c; font-weight: 700; }
+    .bad { color: #e55353; font-weight: 700; }
+    .muted { color: #8a93a2; }
+    .card { border-radius: 14px; }
+
+    /* Scroll horizontal arriba para tablas anchas */
+    .top-scroll { overflow-x: auto; overflow-y: hidden; height: 14px; border-radius: 10px; }
+    .top-scroll-inner { height: 1px; }
+    .table-scroll { overflow-x: auto; }
+
+    /* Limitar alto tabla existencia para no hacer infinito */
+    .max-h-420 { max-height: 420px; overflow: auto; }
+
+    /* Sidebar encima del backdrop */
+.sidebar { z-index: 1040; }
+
+/* En pantallas grandes: que NO sea overlay por defecto */
+@media (min-width: 992px) {
+  .sidebar { transform: none !important; }
+  .sidebar:not(.show) { transform: translateX(-100%) !important; } /* permite esconder */
+}
+
+/* Cuando sidebar está escondido, el wrapper se estira */
+@media (min-width: 992px) {
+  .wrapper { margin-left: 0 !important; }
+  .sidebar.show ~ .wrapper { margin-left: 256px !important; } /* ancho típico CoreUI */
+}
+
+  
+
+/* =========================================================
+   Tema corporativo (Ranco) - Sidebar rojo #c22040 + íconos blancos
+   ========================================================= */
+:root{
+  --ranco-red:#c22040;
+  --ranco-red-hover:#a51b35;
+  --ranco-red-active:#8f162c;
+  --ranco-white:#ffffff;
+  --ranco-soft:#ffd7df;
+}
+
+/* Sidebar */
+.sidebar,
+.c-sidebar,
+#sidebar{
+  background-color: var(--ranco-red) !important;
+}
+
+/* Brand area (si existe) */
+.sidebar-brand,
+.c-sidebar-brand{
+  background-color: var(--ranco-red) !important;
+  border-bottom: 1px solid rgba(255,255,255,.18);
+}
+
+/* Nav title */
+.sidebar .nav-title,
+.c-sidebar .nav-title{
+  color: var(--ranco-soft) !important;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+/* Links + íconos */
+.sidebar .nav-link,
+.c-sidebar .nav-link{
+  color: var(--ranco-white) !important;
+}
+.sidebar .nav-link .nav-icon,
+.c-sidebar .nav-link .nav-icon,
+.sidebar .nav-link i,
+.c-sidebar .nav-link i{
+  color: var(--ranco-white) !important;
+  opacity: .95;
+}
+
+/* Hover */
+.sidebar .nav-link:hover,
+.c-sidebar .nav-link:hover{
+  background-color: var(--ranco-red-hover) !important;
+  color: var(--ranco-white) !important;
+}
+
+/* Active */
+.sidebar .nav-link.active,
+.c-sidebar .nav-link.active{
+  background-color: var(--ranco-red-active) !important;
+  color: var(--ranco-white) !important;
+}
+.sidebar .nav-link.active .nav-icon,
+.c-sidebar .nav-link.active .nav-icon{
+  color: var(--ranco-white) !important;
+}
+
+/* Divider / borders (si existen) */
+.sidebar hr,
+.c-sidebar hr{
+  border-color: rgba(255,255,255,.18) !important;
+}
+
+/* Header (opcional: combina con el tema) */
+.header,
+.c-header{
+  background-color: #ffffff !important;
+}
+
+/* Sidebar toggler (hamburger) y botones del header que controlan sidebar */
+.header-toggler,
+.c-header-toggler,
+.header .btn,
+.c-header .btn{
+  color: var(--ranco-red) !important;
+}
+.header-toggler:hover,
+.c-header-toggler:hover{
+  color: var(--ranco-red-hover) !important;
+}
+
+/* Iconos del header toggler (si vienen como svg) */
+.header-toggler svg,
+.c-header-toggler svg{
+  fill: var(--ranco-red) !important;
+}
+
+/* Scrollbar (solo WebKit) */
+.sidebar::-webkit-scrollbar{
+  width: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb{
+  background: rgba(255,255,255,.25);
+  border-radius: 10px;
+}
+.sidebar::-webkit-scrollbar-thumb:hover{
+  background: rgba(255,255,255,.35);
+}
+
+
+/* =========================================================
+   Botones en rojo corporativo
+   ========================================================= */
+
+/* Botón base */
+.btn{
+  border-radius: .5rem;
+}
+
+/* Primary */
+.btn-primary,
+button.btn-primary{
+  background-color: var(--ranco-red) !important;
+  border-color: var(--ranco-red) !important;
+  color: var(--ranco-white) !important;
+}
+.btn-primary:hover,
+button.btn-primary:hover{
+  background-color: var(--ranco-red-hover) !important;
+  border-color: var(--ranco-red-hover) !important;
+  color: var(--ranco-white) !important;
+}
+.btn-primary:active,
+.btn-primary:focus,
+.btn-primary:focus-visible{
+  background-color: var(--ranco-red-active) !important;
+  border-color: var(--ranco-red-active) !important;
+  color: var(--ranco-white) !important;
+  box-shadow: 0 0 0 .2rem rgba(194,32,64,.25) !important;
+}
+
+/* Success (lo convertimos a rojo para consistencia visual) */
+.btn-success,
+button.btn-success{
+  background-color: var(--ranco-red) !important;
+  border-color: var(--ranco-red) !important;
+  color: var(--ranco-white) !important;
+}
+.btn-success:hover,
+button.btn-success:hover{
+  background-color: var(--ranco-red-hover) !important;
+  border-color: var(--ranco-red-hover) !important;
+  color: var(--ranco-white) !important;
+}
+
+/* Outline */
+.btn-outline-primary,
+button.btn-outline-primary{
+  color: var(--ranco-white) !important;
+  border-color: rgba(255,255,255,.55) !important;
+  background-color: rgba(255,255,255,.10) !important;
+}
+.btn-outline-primary:hover,
+button.btn-outline-primary:hover{
+  color: var(--ranco-white) !important;
+  border-color: rgba(255,255,255,.70) !important;
+  background-color: rgba(255,255,255,.18) !important;
+}
+
+/* Botones genéricos sin clase (fallback, solo dentro de cards) */
+.card button:not(.btn),
+.card .btn{
+  font-weight: 600;
+}
+
+/* Links que parecen botón (si los tienes) */
+a.btn{
+  color: var(--ranco-white) !important;
+}
+
+
+/* =========================================================
+   Sidebar más pro (Item 5)
+   - Brand superior
+   - Indicador activo
+   ========================================================= */
+
+#rancoBrand{
+  border-bottom: 1px solid rgba(255,255,255,.18);
+}
+#rancoBrand .brand-mark{
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.18);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 900;
+}
+#rancoBrand .brand-title{
+  color: #fff;
+  font-weight: 900;
+  line-height: 1.05;
+}
+#rancoBrand .brand-subtitle{
+  color: rgba(255,255,255,.85);
+  font-size: 12px;
+  line-height: 1.05;
+}
+
+/* Indicador activo (barra blanca) */
+.sidebar .nav-link.active{
+  position: relative;
+}
+.sidebar .nav-link.active::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:8px;
+  bottom:8px;
+  width:4px;
+  border-radius: 0 8px 8px 0;
+  background:#fff;
+  opacity:.95;
+}
+</style>
+</head>
+
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar sidebar-dark sidebar-fixed" id="sidebar">
+    
+<!-- Sidebar brand (pro) -->
+<div id="rancoBrand" class="sidebar-brand d-flex align-items-center gap-2 px-3 py-3">
+  <div class="brand-mark">R</div>
+  <div class="brand-text">
+    <div class="brand-title">Ranco</div>
+    <div class="brand-subtitle">Gespro · Restricciones</div>
+  </div>
+</div>
+<div class="sidebar-brand d-none d-md-flex">
+      <div class="sidebar-brand-full">
+        <span class="fw-bold">🌍 Gespro</span>
+      </div>
+      <div class="sidebar-brand-narrow">G</div>
+    </div>
+
+    <ul class="sidebar-nav" data-coreui="navigation" data-simplebar>
+      <li class="nav-title">Consultas</li>
+
+      <li class="nav-item">
+        <a class="nav-link active" href="#" data-view="view-prod-pais">
+          <i class="nav-icon cil-search"></i> Productor → País
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-view="view-pais-productores">
+          <i class="nav-icon cil-list"></i> País → Productores aptos
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-view="view-existencia">
+          <i class="nav-icon cil-storage"></i> Existencia pallets
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-view="view-corea">
+          <i class="nav-icon cil-flag-alt"></i> Corea (Final)
+        </a>
+      </li>
+
+
+<li class="nav-item">
+  <a class="nav-link" href="#" data-view="view-cuarentena">
+    <i class="nav-icon cil-warning"></i> Cuarentena SAG
+  </a>
+</li>
+
+
+      <li class="nav-title">Links</li>
+      <li class="nav-item">
+        <a class="nav-link" target="_blank" rel="noopener" href="http://127.0.0.1:8000/docs">
+          <i class="nav-icon cil-external-link"></i> API Docs
+        </a>
+      </li>
+    </ul>
+
+    <button class="sidebar-toggler" type="button" data-coreui-toggle="unfoldable"></button>
+  </div>
+
+  <!-- Wrapper -->
+  <div class="wrapper d-flex flex-column min-vh-100 bg-light">
+    <!-- Header -->
+    <header class="header header-sticky mb-4 p-0">
+      <div class="container-fluid border-bottom px-4">
+        <button class="header-toggler" type="button" onclick="toggleSidebar()">
+          <i class="cil-menu"></i>
+        </button>
+
+        <div class="header-nav ms-3">
+          <span class="fw-semibold">Exportación Productores & Existencia</span>
+          <span class="ms-2 muted mono">UI CoreUI</span>
+        </div>
+
+        <div class="header-nav ms-auto">
+          <span class="badge bg-info text-dark">Local</span>
+          <span class="ms-2 mono">127.0.0.1</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="body flex-grow-1 px-4">
+      <div class="container-fluid">
+
+        <!-- ========================= -->
+        <!-- VIEW: PRODUCTOR -> PAÍS -->
+        <!-- ========================= -->
+        <div id="view-prod-pais" class="view">
+          <div class="row">
+            <div class="col-12 col-xl-10">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                  <div class="fw-bold">🔎 ¿Puede un productor exportar a un país?</div>
+                  <div class="small muted">Busca por código o nombre, selecciona país y consulta.</div>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Buscar productor</label>
+                      <input id="busquedaProd" class="form-control" placeholder="Ej: 103 o BROTES" />
+                      <div class="form-text">Escribe al menos 2 caracteres.</div>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Seleccionar productor</label>
+                      <select id="productorSelect" class="form-select">
+                        <option value="">Seleccione productor</option>
+                      </select>
+                    </div>
+
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">País destino</label>
+                      <select id="paisProd" class="form-select"></select>
+                    </div>
+
+                    <div class="col-12 col-lg-6 d-grid align-items-end">
+                      <label class="form-label">&nbsp;</label>
+                      <button class="btn btn-primary" onclick="consultarProductor()">Consultar</button>
+                    </div>
+                  </div>
+
+                  <div id="resultadoProd" class="mt-4"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- VIEW: PAÍS -> PRODUCTORES -->
+        <!-- ========================= -->
+        <div id="view-pais-productores" class="view d-none">
+          <div class="row">
+            <div class="col-12 col-xl-11">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                  <div class="fw-bold">📌 ¿Qué productores pueden exportar a un país?</div>
+                  <div class="small muted">Lista productores aptos (sin advertencias/alertas) y permite filtrar.</div>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label">País</label>
+                      <select id="paisLista" class="form-select"></select>
+                    </div>
+                    <div class="col-12 col-lg-5">
+                      <label class="form-label">Filtro (código o nombre)</label>
+                      <input id="filtroPais" class="form-control" placeholder="Ej: 103 o BROTES" />
+                    </div>
+                    <div class="col-12 col-lg-3 d-grid align-items-end">
+                      <label class="form-label">&nbsp;</label>
+                      <button class="btn btn-success" onclick="listarProductores()">Listar productores aptos</button>
+                    </div>
+                  </div>
+
+                  <div id="tablaPais" class="mt-4"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================= -->
+        <!-- VIEW: EXISTENCIA -->
+        <!-- ========================= -->
+        <div id="view-existencia" class="view d-none">
+          <div class="row">
+            <div class="col-12">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <div class="fw-bold">📦 Existencia Pallets (Producción)</div>
+                    <div class="small muted">Carga el JSON con credenciales (no se guardan) y visualiza columnas clave.</div>
+                  </div>
+                  <a class="btn btn-outline-secondary btn-sm"
+                     href="https://produccion.ranco.cl/#/FR/informes/existencia_pallet"
+                     target="_blank" rel="noopener">
+                    Abrir dinámica original
+                  </a>
+                </div>
+
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Usuario Producción</label>
+                      <input id="prodUser" class="form-control" placeholder="usuario@ranco.cl" />
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label">Password Producción</label>
+                      <input id="prodPass" class="form-control" type="password" placeholder="••••••••" />
+                    </div>
+                    <div class="col-12 col-md-4 d-grid align-items-end">
+                      <label class="form-label">&nbsp;</label>
+                      <button class="btn btn-success" onclick="cargarExistencia()">Cargar existencia</button>
+                    </div>
+                  </div>
+
+                  <div class="row g-3 mt-1">
+                    <div class="col-12">
+                      <label class="form-label">Filtrar existencia</label>
+                      <input id="filtroExistencia" class="form-control" placeholder="Filtrar por columnas visibles" />
+                    </div>
+                  </div>
+
+                  <div id="existenciaStatus" class="mt-3 muted"></div>
+                  <div id="existenciaTabla" class="mt-2"></div>
+
+                  <hr class="my-4">
+
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div>
+                      <div class="fw-bold">🧾 Productores en existencia vs. Mercado (Gespro)</div>
+                      <div class="small muted">Extrae productores únicos desde existencia y evalúa si pueden exportar.</div>
+                    </div>
+                  </div>
+
+                  <div class="row g-3 mt-2">
+                    <div class="col-12 col-lg-4">
+                      <label class="form-label">País a evaluar</label>
+                      <select id="paisExistEval" class="form-select"></select>
+                    </div>
+
+                    <div class="col-12 col-lg-4 d-grid align-items-end">
+                      <label class="form-label">&nbsp;</label>
+                      <button class="btn btn-primary" onclick="evaluarProductoresExistencia()">Evaluar productores en existencia</button>
+                    </div>
+
+                    <div class="col-12 col-lg-4 d-grid align-items-end">
+                      <label class="form-label">&nbsp;</label>
+                      <button class="btn btn-outline-secondary" onclick="exportarTablaExistenciaEval()">Exportar CSV</button>
+                    </div>
+                  </div>
+
+                  <div id="existenciaEvalStatus" class="mt-3 muted"></div>
+                  <div id="existenciaEvalTabla" class="mt-2"></div>
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      
+        <!-- ========================= -->
+        <!-- VIEW: COREA FINAL -->
+        <!-- ========================= -->
+        <div id="view-corea" class="view d-none">
+          <div class="row">
+            <div class="col-12 col-xl-11">
+              <div class="card mb-4 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div>
+                    <div class="fw-bold">🇰🇷 Corea – Consolidado Final</div>
+                    <div class="small muted">Muestra el Excel Final (CSG inscrito/aprobado) y permite filtrar.</div>
+                  </div>
+                  <button class="btn btn-outline-primary btn-sm" onclick="coreaActualizar()">Actualizar Corea</button>
+                </div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Filtro rápido</label>
+                      <input id="coreaFiltro" class="form-control" placeholder="Buscar por CSG, productor, región, comuna..." />
+                    </div>
+                    <div class="col-12 col-lg-6">
+                      <label class="form-label">Estado</label>
+                      <div id="coreaStatus" class="mono muted">Sin cargar…</div>
+                    </div>
+                  </div>
+
+                  <div id="coreaTabla" class="mt-3"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+      
+<!-- ========================= -->
+<!-- VIEW: CUARENTENA SAG -->
+<!-- ========================= -->
+<div id="view-cuarentena" class="view d-none">
+  <div class="row">
+    <div class="col-12 col-xl-11">
+      <div class="card mb-4 shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div>
+            <div class="fw-bold">🦟 Cuarentena SAG – Predios / Mitigaciones</div>
+            <div class="small muted">Consulta el consolidado final (Productor, CSG, Radio, Mercado, Mitigación).</div>
+          </div>
+          <button class="btn btn-outline-primary btn-sm" onclick="cuarentenaActualizar()">Actualizar Cuarentena</button>
+        </div>
+
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-lg-5">
+              <label class="form-label">Buscar (productor / código / CSG / mitigación)</label>
+              <input id="cuarentenaQuery" class="form-control" placeholder="Ej: 103, LOS BROTES, 12345, USA..." />
+              <div class="form-text">Filtra en el servidor (más rápido que filtrar en el navegador).</div>
+            </div>
+
+            <div class="col-12 col-lg-4">
+              <label class="form-label">Mercado (opcional)</label>
+              <input id="cuarentenaMercado" class="form-control" placeholder="Ej: USA / CHN / KOR" />
+            </div>
+
+            <div class="col-12 col-lg-3 d-grid align-items-end">
+              <label class="form-label">&nbsp;</label>
+              <button class="btn btn-success" onclick="cuarentenaCargar()">Buscar</button>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-1">
+            <div class="col-12 col-lg-6">
+              <label class="form-label">Estado</label>
+              <div id="cuarentenaStatus" class="mono muted">Sin cargar…</div>
+            </div>
+          </div>
+
+          <div id="cuarentenaTabla" class="mt-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      </div><!-- container-fluid -->
+    </div><!-- body -->
+
+    <footer class="footer px-4">
+      <div><span class="mono">Gespro UI</span> · CoreUI</div>
+      <div class="ms-auto">API: <span class="mono">127.0.0.1:8000</span></div>
+    </footer>
+  </div><!-- wrapper -->
+
+  <!-- CoreUI JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui@5.0.2/dist/js/coreui.bundle.min.js"></script>
+
+  
+
+  <script>
+  const API = "http://127.0.0.1:8000";
+
+  const PAISES = [
+    { code: "CHN", label: "China" },
+    { code: "EU",  label: "Europa" },
+    { code: "GBR", label: "Reino Unido" },
+    { code: "USA", label: "USA" },
+    { code: "BRA", label: "Brasil" },
+    { code: "CAN", label: "Canadá" },
+    { code: "KOR", label: "Corea" },
+    { code: "TWN", label: "Taiwán" },
+    { code: "THA", label: "Tailandia" },
+    { code: "VNM", label: "Vietnam" },
+    { code: "IDN", label: "Indonesia" },
+    { code: "ECU", label: "Ecuador" },
+    { code: "RUS", label: "Rusia" },
+    { code: "LIDL", label: "LIDL" },
+    { code: "CHL", label: "Chile" }
+  ];
+
+  function escapeHtml(s) {
+    return String(s)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function toggleSidebar(force) {
+    const sb = document.getElementById("sidebar");
+    const shouldShow = (typeof force === "boolean") ? force : !sb.classList.contains("show");
+    sb.classList.toggle("show", shouldShow);
+
+    let bd = document.getElementById("sidebar-backdrop");
+    if (shouldShow) {
+      if (!bd) {
+        bd = document.createElement("div");
+        bd.id = "sidebar-backdrop";
+        bd.style.position = "fixed";
+        bd.style.top = "0";
+        bd.style.left = "0";
+        bd.style.right = "0";
+        bd.style.bottom = "0";
+        bd.style.background = "rgba(0,0,0,0.35)";
+        bd.style.zIndex = "1030";
+        bd.addEventListener("click", () => toggleSidebar(false));
+        document.body.appendChild(bd);
+      }
+    } else {
+      if (bd) bd.remove();
+    }
+  }
+  window.toggleSidebar = toggleSidebar;
+
+  function showView(id) {
+    document.querySelectorAll(".view").forEach(v => v.classList.add("d-none"));
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("d-none");
+  }
+
+  document.querySelectorAll("[data-view]").forEach(a => {
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      const id = a.getAttribute("data-view");
+
+      document.querySelectorAll(".sidebar .nav-link").forEach(x => x.classList.remove("active"));
+      a.classList.add("active");
+
+      showView(id);
+
+      if (id === "view-corea") {
+        coreaCargar();
+      }
+      if (id === "view-cuarentena") {
+        cuarentenaCargar();
+      }
+    });
+  });
+
+  function fillPaisSelect(selId, defaultCode="CHN") {
+    const sel = document.getElementById(selId);
+    if (!sel) return;
+    sel.innerHTML = "";
+    PAISES.forEach(p => {
+      const opt = document.createElement("option");
+      opt.value = p.code;
+      opt.textContent = `${p.label} (${p.code})`;
+      sel.appendChild(opt);
+    });
+    sel.value = defaultCode;
+  }
+  fillPaisSelect("paisProd", "CHN");
+  fillPaisSelect("paisLista", "USA");
+  fillPaisSelect("paisExistEval", "RUS");
+
+  // Autocomplete
+  let timer = null;
+  const busq = document.getElementById("busquedaProd");
+  if (busq) {
+    busq.addEventListener("keyup", function () {
+      clearTimeout(timer);
+      const q = this.value.trim();
+      const sel = document.getElementById("productorSelect");
+      if (!sel) return;
+
+      if (q.length < 2) {
+        sel.innerHTML = `<option value="">Seleccione productor</option>`;
+        return;
+      }
+
+      timer = setTimeout(async () => {
+        try {
+          const res = await fetch(`${API}/productores?q=${encodeURIComponent(q)}&limit=50`);
+          const data = await res.json();
+
+          sel.innerHTML = `<option value="">Seleccione productor</option>`;
+          if (!Array.isArray(data) || data.length === 0) {
+            sel.innerHTML += `<option value="">(Sin resultados)</option>`;
+            return;
+          }
+
+          data.forEach(p => {
+            sel.innerHTML += `<option value="${escapeHtml(String(p.productor_codigo))}">
+              ${escapeHtml(String(p.productor_codigo))} - ${escapeHtml(String(p.productor_nombre))}
+            </option>`;
+          });
+        } catch (e) {
+          console.error(e);
+          sel.innerHTML = `<option value="">Error cargando productores</option>`;
+        }
+      }, 300);
+    });
+  }
+
+  async function consultarProductor() {
+    const prod = document.getElementById("productorSelect")?.value;
+    const pais = document.getElementById("paisProd")?.value;
+    if (!prod) return alert("Seleccione un productor.");
+
+    const div = document.getElementById("resultadoProd");
+    if (!div) return;
+    div.innerHTML = `<div class="mono muted">Consultando...</div>`;
+
+    try {
+      const r = await fetch(`${API}/productor/${encodeURIComponent(prod)}/pais/${encodeURIComponent(pais)}/evaluacion`);
+      const d = await r.json();
+
+      if (!r.ok) {
+        div.innerHTML = `<div class="bad">Error: ${escapeHtml(d.detail || JSON.stringify(d))}</div>`;
+        return;
+      }
+
+      if (d.puede_ir === 1) {
+        div.innerHTML = `
+          <div class="ok">✅ Puede exportar a ${escapeHtml(pais)}</div>
+          <div class="mt-1">
+            OK: <b>${escapeHtml(String(d.ok))}</b> |
+            Advertencias: <b>${escapeHtml(String(d.advertencias))}</b> |
+            Alertas: <b>${escapeHtml(String(d.alertas))}</b>
+          </div>
+        `;
+        return;
+      }
+
+      div.innerHTML = `
+        <div class="bad">⛔ NO puede exportar a ${escapeHtml(pais)}</div>
+        <div class="mt-1">
+          OK: <b>${escapeHtml(String(d.ok))}</b> |
+          Advertencias: <b>${escapeHtml(String(d.advertencias))}</b> |
+          Alertas: <b>${escapeHtml(String(d.alertas))}</b>
+        </div>
+        <div class="mono muted mt-2">Cargando detalle de bloqueos...</div>
+      `;
+
+      const rb = await fetch(`${API}/productor/${encodeURIComponent(prod)}/pais/${encodeURIComponent(pais)}/bloqueos`);
+      const bloqueos = await rb.json();
+
+      if (!rb.ok) {
+        div.innerHTML += `<div class="bad mt-2">Error bloqueos: ${escapeHtml(bloqueos.detail || JSON.stringify(bloqueos))}</div>`;
+        return;
+      }
+
+      if (!Array.isArray(bloqueos) || bloqueos.length === 0) {
+        div.innerHTML += `<div class="mt-2">No se encontraron combinaciones bloqueantes.</div>`;
+        return;
+      }
+
+      let tabla = `
+        <div class="mt-3 fw-bold">⚠ Combinaciones bloqueantes (${bloqueos.length})</div>
+        <div class="table-responsive mt-2">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr>
+              <th>Predio</th><th>Especie</th><th>CSG</th><th>Variedad</th><th>Sector</th><th>Estado</th><th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      bloqueos.forEach(b => {
+        tabla += `
+          <tr>
+            <td>${escapeHtml(String(b.predio ?? ""))}</td>
+            <td>${escapeHtml(String(b.especie ?? ""))}</td>
+            <td>${escapeHtml(String(b.csg ?? ""))}</td>
+            <td>${escapeHtml(String(b.variedad ?? ""))}</td>
+            <td>${escapeHtml(String(b.sector ?? ""))}</td>
+            <td class="bad">${escapeHtml(String(b.estado ?? ""))}</td>
+            <td>${escapeHtml(String(b.fecha_extraccion ?? ""))}</td>
+          </tr>
+        `;
+      });
+
+      tabla += `</tbody></table></div>`;
+      div.innerHTML += tabla;
+
+    } catch (e) {
+      console.error(e);
+      div.innerHTML = `<div class="bad">No se pudo consultar (API caída o error).</div>`;
+    }
+  }
+  window.consultarProductor = consultarProductor;
+
+  async function listarProductores() {
+    const pais = document.getElementById("paisLista")?.value;
+    const q = (document.getElementById("filtroPais")?.value || "").trim();
+
+    const url = `${API}/pais/${encodeURIComponent(pais)}/productores/aptos?limit=500` +
+                (q ? `&q=${encodeURIComponent(q)}` : "");
+
+    const cont = document.getElementById("tablaPais");
+    if (!cont) return;
+    cont.innerHTML = `<div class="mono muted">Cargando...</div>`;
+
+    try {
+      const r = await fetch(url);
+      const data = await r.json();
+
+      if (!r.ok) {
+        cont.innerHTML = `<div class="bad">Error: ${escapeHtml(data.detail || JSON.stringify(data))}</div>`;
+        return;
+      }
+
+      if (!Array.isArray(data) || data.length === 0) {
+        cont.innerHTML = `<div>No hay productores aptos con ese filtro.</div>`;
+        return;
+      }
+
+      let html = `
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="mono muted">Resultados: ${data.length}</div>
+        </div>
+        <div class="table-responsive mt-2">
+        <table class="table table-sm table-striped align-middle">
+          <thead>
+            <tr><th style="width:120px;">Código</th><th>Productor</th><th style="width:80px;">OK</th></tr>
+          </thead>
+          <tbody>
+      `;
+
+      data.forEach(p => {
+        html += `
+          <tr>
+            <td>${escapeHtml(String(p.productor_codigo ?? ""))}</td>
+            <td>${escapeHtml(String(p.productor_nombre ?? ""))}</td>
+            <td class="ok">${escapeHtml(String(p.ok ?? ""))}</td>
+          </tr>
+        `;
+      });
+
+      html += `</tbody></table></div>`;
+      cont.innerHTML = html;
+
+    } catch (e) {
+      console.error(e);
+      cont.innerHTML = `<div class="bad">No se pudo cargar la lista (API caída o CORS).</div>`;
+    }
+  }
+  window.listarProductores = listarProductores;
+
+  const filtroPaisEl = document.getElementById("filtroPais");
+  if (filtroPaisEl) {
+    filtroPaisEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") listarProductores();
+    });
+  }
+
+  // EXISTENCIA (igual que tu lógica)
+  const EXISTENCIA_COLS = [
+    "CodigoFacilitie","NombreFacilitie","CodigoProductorEti","NombreProductorEti","CodigEspecie",
+    "CodigoEnvop","CodigoCalibre","CodigoCategoria","PesoNetoEnvop","CodigoPredioEtiquetado",
+    "NumeroProceso","CodigoPredioReal","CodigoEtiqueta","CodigoCuartelEtiquetado","MercadoInspeccionado",
+    "FechaPack","Pallet","Cajas","CajasEquivalentes"
+  ];
+
+  function normalizeKeys(row) {
+    const out = {};
+    for (const [k, v] of Object.entries(row || {})) out[(k || "").trim()] = v;
+    return out;
+  }
+
+  let existenciaData = [];
+  let existenciaEvalRows = [];
+
+  async function cargarExistencia() {
+    const usuario = (document.getElementById("prodUser")?.value || "").trim();
+    const password = (document.getElementById("prodPass")?.value || "").trim();
+    const status = document.getElementById("existenciaStatus");
+    const cont = document.getElementById("existenciaTabla");
+
+    if (!usuario || !password) {
+      alert("Ingresa usuario y password de Producción.");
+      return;
+    }
+
+    status.textContent = "Cargando existencia desde Producción...";
+    cont.innerHTML = "";
+    existenciaData = [];
+
+    document.getElementById("existenciaEvalStatus").textContent = "";
+    document.getElementById("existenciaEvalTabla").innerHTML = "";
+    existenciaEvalRows = [];
+
+    try {
+      const res = await fetch(`${API}/existencia_pallet`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({ usuario, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        status.textContent = "";
+        alert("Error: " + (data.detail || JSON.stringify(data)));
+        return;
+      }
+
+      let rows = data;
+      if (!Array.isArray(rows) && rows && typeof rows === "object") {
+        const firstArrayKey = Object.keys(rows).find(k => Array.isArray(rows[k]));
+        if (firstArrayKey) rows = rows[firstArrayKey];
+      }
+
+      if (!Array.isArray(rows)) {
+        status.textContent = "Respuesta recibida, pero no es lista. Mostrando JSON.";
+        cont.innerHTML = `<pre class="mono" style="white-space:pre-wrap;">${escapeHtml(JSON.stringify(data, null, 2))}</pre>`;
+        return;
+      }
+
+      const normalized = rows.map(normalizeKeys);
+      existenciaData = normalized;
+      status.textContent = `OK ✅ Registros: ${normalized.length}`;
+      renderExistencia(normalized);
+
+    } catch (e) {
+      console.error(e);
+      status.textContent = "";
+      alert("No se pudo cargar (API caída o error de red).");
+    }
+  }
+  window.cargarExistencia = cargarExistencia;
+
+  function renderExistencia(rows) {
+    const cont = document.getElementById("existenciaTabla");
+    if (!rows.length) {
+      cont.innerHTML = "<div>Sin registros.</div>";
+      return;
+    }
+
+    const colsDisponibles = new Set(Object.keys(rows[0] || {}));
+    const cols = EXISTENCIA_COLS.filter(c => colsDisponibles.has(c));
+
+    if (cols.length === 0) {
+      cont.innerHTML = `<div class="bad">No se encontraron columnas esperadas.</div>
+        <pre class="mono" style="white-space:pre-wrap;">${escapeHtml(JSON.stringify(rows[0], null, 2))}</pre>`;
+      return;
+    }
+
+    const maxRows = 300;
+
+    let tableHtml = `
+      <table class="table table-sm table-striped align-middle mt-2 mb-0">
+        <thead>
+          <tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr>
+        </thead>
+        <tbody>
+    `;
+
+    rows.slice(0, maxRows).forEach(r => {
+      tableHtml += "<tr>" + cols.map(c => `<td>${escapeHtml(String(r?.[c] ?? ""))}</td>`).join("") + "</tr>";
+    });
+
+    tableHtml += `</tbody></table>`;
+
+    cont.innerHTML = `
+      <div class="top-scroll" id="existTopScroll"><div class="top-scroll-inner" id="existTopInner"></div></div>
+      <div class="table-responsive table-scroll max-h-420" id="existTableScroll">${tableHtml}</div>
+      ${rows.length > maxRows ? `<div class="small muted mt-2">Mostrando ${maxRows} de ${rows.length} (rendimiento).</div>` : ""}
+    `;
+
+    const top = document.getElementById("existTopScroll");
+    const topInner = document.getElementById("existTopInner");
+    const tableScroll = document.getElementById("existTableScroll");
+    const realTable = tableScroll.querySelector("table");
+    if (realTable) topInner.style.width = realTable.scrollWidth + "px";
+
+    let syncing = false;
+    top.addEventListener("scroll", () => {
+      if (syncing) return;
+      syncing = true;
+      tableScroll.scrollLeft = top.scrollLeft;
+      syncing = false;
+    });
+    tableScroll.addEventListener("scroll", () => {
+      if (syncing) return;
+      syncing = true;
+      top.scrollLeft = tableScroll.scrollLeft;
+      syncing = false;
+    });
+  }
+
+  const filtroExist = document.getElementById("filtroExistencia");
+  if (filtroExist) {
+    filtroExist.addEventListener("input", function() {
+      const q = (this.value || "").trim().toLowerCase();
+      if (!existenciaData.length) return;
+
+      if (!q) {
+        document.getElementById("existenciaStatus").textContent = `OK ✅ Registros: ${existenciaData.length}`;
+        renderExistencia(existenciaData);
+        return;
+      }
+
+      const filtered = existenciaData.filter(row =>
+        EXISTENCIA_COLS.some(k => String(row?.[k] ?? "").toLowerCase().includes(q))
+      );
+
+      document.getElementById("existenciaStatus").textContent = `Filtrado: ${filtered.length} / ${existenciaData.length}`;
+      renderExistencia(filtered);
+    });
+  }
+
+  function obtenerProductoresUnicosDesdeExistencia() {
+    const map = new Map();
+    for (const r of (existenciaData || [])) {
+      const cod = String(r?.CodigoProductorEti ?? "").trim();
+      const nom = String(r?.NombreProductorEti ?? "").trim();
+      if (!cod) continue;
+      if (!map.has(cod)) map.set(cod, { productor_codigo: cod, productor_nombre: nom });
+    }
+    return Array.from(map.values()).sort((a,b) => (a.productor_nombre || "").localeCompare(b.productor_nombre || ""));
+  }
+
+  async function evaluarProductoresExistencia() {
+    const pais = document.getElementById("paisExistEval")?.value;
+    const status = document.getElementById("existenciaEvalStatus");
+    const cont = document.getElementById("existenciaEvalTabla");
+
+    if (!existenciaData.length) {
+      alert("Primero debes cargar la existencia.");
+      return;
+    }
+
+    const productores = obtenerProductoresUnicosDesdeExistencia();
+    if (!productores.length) {
+      alert("No se detectaron productores (CodigoProductorEti vacío).");
+      return;
+    }
+
+    status.textContent = `Evaluando ${productores.length} productores contra ${pais}...`;
+    cont.innerHTML = "";
+    existenciaEvalRows = [];
+
+    const CONC = 8;
+    let idx = 0;
+
+    async function worker() {
+      while (idx < productores.length) {
+        const i = idx++;
+        const p = productores[i];
+
+        try {
+          const r = await fetch(`${API}/productor/${encodeURIComponent(p.productor_codigo)}/pais/${encodeURIComponent(pais)}/evaluacion`);
+          const d = await r.json();
+
+          if (!r.ok) {
+            existenciaEvalRows.push({
+              productor_codigo: p.productor_codigo, productor_nombre: p.productor_nombre, pais,
+              puede_ir: "ERROR", ok:"", advertencias:"", alertas:"", bloqueos:"", detalle: d.detail || JSON.stringify(d)
+            });
+          } else {
+            existenciaEvalRows.push({
+              productor_codigo: p.productor_codigo, productor_nombre: p.productor_nombre, pais,
+              puede_ir: d.puede_ir ? "SI" : "NO",
+              ok: d.ok, advertencias: d.advertencias, alertas: d.alertas, bloqueos: d.bloqueos, detalle: ""
+            });
+          }
+        } catch (e) {
+          existenciaEvalRows.push({
+            productor_codigo: p.productor_codigo, productor_nombre: p.productor_nombre, pais,
+            puede_ir: "ERROR", ok:"", advertencias:"", alertas:"", bloqueos:"", detalle: String(e)
+          });
+        }
+
+        if (i % 10 === 0) status.textContent = `Evaluando... ${Math.min(i+1, productores.length)} / ${productores.length}`;
+      }
+    }
+
+    await Promise.all(Array.from({length: CONC}, () => worker()));
+
+    const rank = (x) => x === "SI" ? 0 : (x === "NO" ? 1 : 2);
+    existenciaEvalRows.sort((a,b) => rank(a.puede_ir) - rank(b.puede_ir));
+
+    status.textContent = `Listo ✅ Evaluados: ${existenciaEvalRows.length}`;
+    renderExistenciaEvalTabla(existenciaEvalRows);
+  }
+  window.evaluarProductoresExistencia = evaluarProductoresExistencia;
+
+  function renderExistenciaEvalTabla(rows) {
+    const cont = document.getElementById("existenciaEvalTabla");
+    if (!rows.length) {
+      cont.innerHTML = "<div>Sin resultados.</div>";
+      return;
+    }
+
+    let html = `
+      <div class="table-responsive mt-2">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>
+            <th style="width:120px;">Código</th>
+            <th>Productor</th>
+            <th style="width:120px;">País</th>
+            <th style="width:100px;">Puede ir</th>
+            <th style="width:70px;">OK</th>
+            <th style="width:120px;">Advertencias</th>
+            <th style="width:80px;">Alertas</th>
+            <th style="width:90px;">Bloqueos</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    rows.forEach(r => {
+      const cls = r.puede_ir === "SI" ? "ok" : (r.puede_ir === "NO" ? "bad" : "");
+      html += `
+        <tr>
+          <td>${escapeHtml(String(r.productor_codigo ?? ""))}</td>
+          <td>${escapeHtml(String(r.productor_nombre ?? ""))}</td>
+          <td>${escapeHtml(String(r.pais ?? ""))}</td>
+          <td class="${cls}">${escapeHtml(String(r.puede_ir ?? ""))}</td>
+          <td>${escapeHtml(String(r.ok ?? ""))}</td>
+          <td>${escapeHtml(String(r.advertencias ?? ""))}</td>
+          <td>${escapeHtml(String(r.alertas ?? ""))}</td>
+          <td>${escapeHtml(String(r.bloqueos ?? ""))}</td>
+        </tr>
+      `;
+    });
+
+    html += `</tbody></table></div>`;
+    cont.innerHTML = html;
+  }
+
+  function exportarTablaExistenciaEval() {
+    if (!existenciaEvalRows.length) {
+      alert("No hay resultados para exportar.");
+      return;
+    }
+
+    const headers = ["productor_codigo","productor_nombre","pais","puede_ir","ok","advertencias","alertas","bloqueos"];
+    const lines = [
+      headers.join(","),
+      ...existenciaEvalRows.map(r => headers.map(h => `"${String(r[h] ?? "").replaceAll('"','""')}"`).join(","))
+    ];
+
+    const blob = new Blob([lines.join("")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "productores_existencia_vs_mercado.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+  window.exportarTablaExistenciaEval = exportarTablaExistenciaEval;
+
+  // COREA FINAL (robusto)
+  window.coreaData = [];
+
+  async function coreaCargar() {
+    const status = document.getElementById("coreaStatus");
+    const cont = document.getElementById("coreaTabla");
+    if (!status || !cont) return;
+
+    status.textContent = "Cargando datos Corea...";
+    cont.innerHTML = "";
+
+    try {
+      const r = await fetch(`${API}/corea/final?limit=5000`);
+      const data = await r.json();
+
+      if (!r.ok) {
+        status.textContent = "Error cargando Corea";
+        cont.innerHTML = `<div class="bad">${escapeHtml(data.detail || JSON.stringify(data))}</div>`;
+        return;
+      }
+
+      window.coreaData = Array.isArray(data) ? data : [];
+      status.textContent = `OK ✅ Registros: ${window.coreaData.length}`;
+      renderCoreaTabla(window.coreaData);
+
+    } catch (e) {
+      console.error(e);
+      status.textContent = "Error de conexión con API";
+    }
+  }
+  window.coreaCargar = coreaCargar;
+
+  function renderCoreaTabla(rows) {
+    const cont = document.getElementById("coreaTabla");
+    if (!cont) return;
+
+    if (!rows.length) {
+      cont.innerHTML = "<div>No hay registros.</div>";
+      return;
+    }
+
+    const cols = [
+      "CSG",
+      "Codigo Productor",
+      "Nombre Productor",
+      "Nombre Region",
+      "Nombre Comuna",
+      "Nombre Variedad",
+      "NOMBRE SECTOR",
+      "CSG Inscrito",
+      "CSG Aprobado",
+      "Fecha Muestreo"
+    ];
+
+    let html = `
+      <div class="table-responsive mt-2">
+      <table class="table table-sm table-striped align-middle">
+        <thead>
+          <tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr>
+        </thead>
+        <tbody>
+    `;
+
+    rows.forEach(r => {
+      html += "<tr>" +
+        cols.map(c => `<td>${escapeHtml(String(r?.[c] ?? ""))}</td>`).join("") +
+        "</tr>";
+    });
+
+    html += `</tbody></table></div>`;
+    cont.innerHTML = html;
+  }
+
+  async function coreaActualizar() {
+    coreaCargar();
+  }
+  window.coreaActualizar = coreaActualizar;
+
+  document.addEventListener("input", function(e){
+    if(e.target && e.target.id==="coreaFiltro"){
+      const q = e.target.value.trim().toLowerCase();
+      if (!q) return renderCoreaTabla(window.coreaData);
+
+      const filtered = window.coreaData.filter(r =>
+        Object.values(r).some(v => String(v).toLowerCase().includes(q))
+      );
+      renderCoreaTabla(filtered);
+    }
+  });
+
+  
+
+// =========================
+// CUARENTENA SAG
+// =========================
+window.cuarentenaRows = [];
+
+async function cuarentenaCargar() {
+  const status = document.getElementById("cuarentenaStatus");
+  const cont = document.getElementById("cuarentenaTabla");
+  if (!status || !cont) return;
+
+  const q = (document.getElementById("cuarentenaQuery")?.value || "").trim();
+  const mercado = (document.getElementById("cuarentenaMercado")?.value || "").trim();
+
+  status.textContent = "Cargando cuarentena...";
+  cont.innerHTML = "";
+
+  const params = new URLSearchParams();
+  params.set("limit", "5000");
+  if (q) params.set("q", q);
+  if (mercado) params.set("mercado", mercado);
+
+  try {
+    const r = await fetch(`${API}/cuarentena/final?${params.toString()}`);
+    const data = await r.json();
+
+    if (!r.ok) {
+      status.textContent = "Error cargando cuarentena";
+      cont.innerHTML = `<div class="bad">${escapeHtml(data.detail || JSON.stringify(data))}</div>`;
+      return;
+    }
+
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+    window.cuarentenaRows = rows;
+
+    status.textContent = `OK ✅ Registros: ${escapeHtml(String(data.count ?? rows.length))} | Fuente: ${escapeHtml(String(data.source ?? ""))}`;
+    renderCuarentenaTabla(rows);
+
+  } catch (e) {
+    console.error(e);
+    status.textContent = "Error de conexión con API";
+    cont.innerHTML = `<div class="bad">No se pudo cargar la información.</div>`;
+  }
+}
+window.cuarentenaCargar = cuarentenaCargar;
+
+function renderCuarentenaTabla(rows) {
+  const cont = document.getElementById("cuarentenaTabla");
+  if (!cont) return;
+
+  if (!rows || rows.length === 0) {
+    cont.innerHTML = "<div>No hay registros.</div>";
+    return;
+  }
+
+  const cols = [
+    "Codigo Productor",
+    "Nombre Corto Productor",
+    "CSG",
+    "CAMPAÑA",
+    "RadioCuarentena",
+    "Mercado",
+    "Medida_Mitigacion"
+  ];
+
+  const maxRows = 3000;
+
+  let tableHtml = `
+    <table class="table table-sm table-striped align-middle mt-2 mb-0">
+      <thead>
+        <tr>${cols.map(c => `<th>${escapeHtml(c)}</th>`).join("")}</tr>
+      </thead>
+      <tbody>
+  `;
+
+  rows.slice(0, maxRows).forEach(r => {
+    tableHtml += "<tr>" + cols.map(c => `<td>${escapeHtml(String(r?.[c] ?? ""))}</td>`).join("") + "</tr>";
+  });
+
+  tableHtml += `</tbody></table>`;
+
+  cont.innerHTML = `
+    <div class="top-scroll" id="cuarTopScroll"><div class="top-scroll-inner" id="cuarTopInner"></div></div>
+    <div class="table-responsive table-scroll max-h-420" id="cuarTableScroll">${tableHtml}</div>
+    ${rows.length > maxRows ? `<div class="small muted mt-2">Mostrando ${maxRows} de ${rows.length} (rendimiento).</div>` : ""}
+  `;
+
+  const top = document.getElementById("cuarTopScroll");
+  const topInner = document.getElementById("cuarTopInner");
+  const tableScroll = document.getElementById("cuarTableScroll");
+  const realTable = tableScroll.querySelector("table");
+  if (realTable) topInner.style.width = realTable.scrollWidth + "px";
+
+  let syncing = false;
+  top.addEventListener("scroll", () => {
+    if (syncing) return;
+    syncing = true;
+    tableScroll.scrollLeft = top.scrollLeft;
+    syncing = false;
+  });
+  tableScroll.addEventListener("scroll", () => {
+    if (syncing) return;
+    syncing = true;
+    top.scrollLeft = tableScroll.scrollLeft;
+    syncing = false;
+  });
+}
+
+async function cuarentenaActualizar() {
+  const status = document.getElementById("cuarentenaStatus");
+  const cont = document.getElementById("cuarentenaTabla");
+  if (status) status.textContent = "Actualizando (puede demorar)...";
+  if (cont) cont.innerHTML = "";
+
+  try {
+    const r = await fetch(`${API}/cuarentena/actualizar`, { method: "POST" });
+    const data = await r.json();
+
+    if (!r.ok) {
+      if (status) status.textContent = "Error al actualizar";
+      if (cont) cont.innerHTML = `<div class="bad">${escapeHtml(data.detail || JSON.stringify(data))}</div>`;
+      return;
+    }
+
+    if (status) status.textContent = escapeHtml(data.msg || "Actualizado.");
+    await cuarentenaCargar();
+
+  } catch (e) {
+    console.error(e);
+    if (status) status.textContent = "Error de conexión con API";
+    if (cont) cont.innerHTML = `<div class="bad">No se pudo actualizar.</div>`;
+  }
+}
+window.cuarentenaActualizar = cuarentenaActualizar;
+
+</script>
+
+</body>
+</html>
